@@ -20,6 +20,8 @@ class GameScene extends Phaser.Scene {
         // Game Variables attached to this scene
         this.score = 0;
         this.gameSpeed = 300;
+        this.maxSpeed = 700;
+        this.acceleration = 10;
         
         // Jump and Accessibility Variables
         this.jumpCount = 0;
@@ -50,6 +52,12 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+
+        // Gradually increase game speed over time
+        if (this.gameSpeed < this.maxSpeed) {
+            // Adds a tiny fraction of speed every frame (15 units per second)
+            this.gameSpeed += this.acceleration * (delta / 1000);
+        }
         // Update Distance Score
         this.score += (this.gameSpeed * delta) / 100000;
         this.scoreText.setText('Distance: ' + Math.floor(this.score) + 'm');
