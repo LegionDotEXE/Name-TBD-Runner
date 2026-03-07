@@ -1,3 +1,6 @@
+// Main.js Prefab
+// Main Configuration and Game Initialization
+
 window.highScore = 0;
 
 const config = {
