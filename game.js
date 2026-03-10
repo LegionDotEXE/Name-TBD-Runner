@@ -17,14 +17,14 @@ class GameScene extends Phaser.Scene {
         graphics.clear();
 
         // Load character sprite sheet
-        this.load.spritesheet('player', 'assets/spritesheet.png', { 
+        this.load.spritesheet('player', 'Assets/spritesheet.png', { 
             frameWidth: 36, 
             frameHeight: 46 
         });
 
         // Load custom audio files
-        this.load.audio('jump-sound', 'assets/jump.mp3');
-        this.load.audio('fall-sound', 'assets/fastfall.mp3');
+        this.load.audio('jump-sound', 'Assets/jump.mp3');
+        this.load.audio('fall-sound', 'Assets/fastfall.mp3');
     }
 
     create() {
