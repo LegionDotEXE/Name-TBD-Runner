@@ -10,7 +10,7 @@ class MainMenu extends Phaser.Scene {
         this.add.text(400, 180, 'SWITCH RUNNER', { fontSize: '48px', fill: '#000', fontStyle: 'bold' }).setOrigin(0.5);
         
         // Added Game Instructions
-        this.add.text(400, 250, 'SPACE / CLICK - Jump | DOWN - Fast Fall', { fontSize: '18px', fill: '#000' }).setOrigin(0.5);
+        this.add.text(400, 250, 'SPACE / CLICK - Jump | Hold SPACE - Fast Fall', { fontSize: '18px', fill: '#000' }).setOrigin(0.5);
         this.add.text(400, 275, 'ESC - Pause | Double Jump Enabled', { fontSize: '18px', fill: '#000' }).setOrigin(0.5);
         
         // Moved start prompt down to accommodate instructions

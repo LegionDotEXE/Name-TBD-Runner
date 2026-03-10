@@ -16,16 +16,15 @@ class GameScene extends Phaser.Scene {
 
         graphics.clear();
 
-        // Player circle
-        graphics.fillStyle(0xFF3333, 1);
-        graphics.fillCircle(20, 20, 20); // radius = 20, center at (20,20)
-        graphics.generateTexture('player', 40, 40);
-        
-        // optional but added here -- Test
-        graphics.clear();
-        graphics.fillStyle(0xFFFF00, 1); // Yellow for fast fall
-        graphics.fillCircle(20, 20, 20);
-        graphics.generateTexture('player-fastfall', 40, 40);
+        // Load character sprite sheet
+        this.load.spritesheet('player', 'assets/spritesheet.png', { 
+            frameWidth: 36, 
+            frameHeight: 46 
+        });
+
+        // Load custom audio files
+        this.load.audio('jump-sound', 'assets/jump.mp3');
+        this.load.audio('fall-sound', 'assets/fastfall.mp3');
     }
 
     create() {
@@ -50,15 +49,38 @@ class GameScene extends Phaser.Scene {
         // Fast fall state flag
         this.isFastFalling = false;
 
+        // Setup Audio
+        this.sfxJump = this.sound.add('jump-sound', { volume: 0.6 });
+        this.sfxFall = this.sound.add('fall-sound', { volume: 0.4 });
+
         this.platforms = this.physics.add.group();
         this.spawnPlatform(0, 400); 
 
+        // Setup Player
         this.player = this.physics.add.sprite(150, 400, 'player');
-        this.player.setCircle(20);
+        this.player.setScale(1.5); // scale up the sprite if it is too small
         this.physics.add.collider(this.player, this.platforms);
+
+        // Animation Definitions
+        this.anims.create({
+            key: 'run',
+            frames: this.anims.generateFrameNumbers('player', { start: 0, end: 1 }), 
+            frameRate: 12, 
+            repeat: -1     
+        });
+
+        this.anims.create({
+            key: 'jump',
+            frames: [ { key: 'player', frame: 2 } ], 
+            frameRate: 10
+        });
+
+        // Start the game with the player running
+        this.player.play('run');
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
+        // Single-Switch jump buffer input handling
         this.input.keyboard.on('keydown-SPACE', () => {
             this.jumBufferTimer = this.jumBufferTimeMax;
         });
@@ -75,6 +97,7 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+        // Gradually increase game speed over time
         if (this.gameSpeed < this.maxSpeed) {
             this.gameSpeed += this.acceleration * (delta / 1000);
         }
@@ -113,44 +136,75 @@ class GameScene extends Phaser.Scene {
         }
 
         const onGround = this.player.body.touching.down;
+        
+        // Single-switch input check for fast fall logic
+        const isActionHeld = this.cursors.space.isDown || this.input.activePointer.isDown;
 
         if (onGround) {
             this.coyoteTimer = this.coyoteTimeMax;
             this.jumpCount = 0;
-            // === ADD: Reset fast fall when landing ===
+            
+            // === ADD: Reset fast fall, remove tint, play run anim when landing ===
             this.isFastFalling = false;
-            this.player.setTexture('player');
+            this.player.play('run', true);
+            this.player.clearTint();
+
+            // Cut the fall sound off smoothly if they land
+            if (this.sfxFall.isPlaying) {
+                this.sfxFall.stop(); 
+            }
         } else {
             this.coyoteTimer -= delta;
             
-            // Added FastBall logic
-            // player must be falling (velocity.y > 0) and DOWN key must be pressed to initiate fast fall
-            if (this.cursors.down.isDown && this.player.body.velocity.y > 0) {
+            // Play the jump pose while in the air
+            this.player.play('jump', true);
+            
+            // Fast fall logic: Player must be falling AND holding the action button
+            if (isActionHeld && this.player.body.velocity.y > 0) {
                 this.isFastFalling = true;
                 this.player.setVelocityY(this.fastFallVelocity);
-                this.player.setTexture('player-fastfall'); // Visual feedback
-            } else if (this.isFastFalling && !this.cursors.down.isDown) {
-                // Stop fast fall when DOWN is released
+                
+                // Add a yellow visual tint to the sprite for feedback
+                this.player.setTint(0xFFFF00); 
+
+                // Play the fall sound ONLY if it isn't already playing
+                if (!this.sfxFall.isPlaying) {
+                    this.sfxFall.play();
+                }
+            } else {
+                // Stop fast fall when action is released
                 this.isFastFalling = false;
-                this.player.setTexture('player');
+                this.player.clearTint();
+
+                if (this.sfxFall.isPlaying) {
+                    this.sfxFall.stop(); 
+                }
             }
         }
 
         if (this.jumBufferTimer > 0) this.jumBufferTimer -= delta;
 
+        // Jump Execution
         if (this.jumBufferTimer > 0) {
             if (onGround || this.coyoteTimer > 0) {
                 this.player.setVelocityY(this.jumpVelocity);
                 this.jumpCount = 1;
                 this.coyoteTimer = 0;
                 this.jumBufferTimer = 0;
+
+                // Play standard jump sound
+                this.sfxJump.play({ detune: 0 }); 
             } else if (this.jumpCount > 0 && this.jumpCount < this.maxJumps) {
                 this.player.setVelocityY(this.jumpVelocity);
                 this.jumpCount++;
                 this.jumBufferTimer = 0;
+
+                // Play double jump sound pitched up
+                this.sfxJump.play({ detune: 300 }); 
             }
         }
 
+        // Game Over Transition
         if (this.player.y > 650) {
             this.scene.start('GameOver', { finalScore: this.score });
         }
