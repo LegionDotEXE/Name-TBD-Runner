@@ -6,6 +6,12 @@ class GameScene extends Phaser.Scene {
     }
     
     preload() {
+
+        // Background layers
+        this.load.image('bg-mountains', 'assets/mountains.png');
+        this.load.image('bg-sky', 'assets/sky.png');
+
+
         // Temporary assets 
         let graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -52,6 +58,9 @@ class GameScene extends Phaser.Scene {
         // Setup Audio
         this.sfxJump = this.sound.add('jump-sound', { volume: 0.6 });
         this.sfxFall = this.sound.add('fall-sound', { volume: 0.4 });
+
+        this.bgSky = this.add.tileSprite(0, 0, 800, 600, 'bg-sky').setOrigin(0, 0);
+        this.bgMountains = this.add.tileSprite(0, 150, 800, 600, 'bg-mountains').setOrigin(0, 0);
 
         this.platforms = this.physics.add.group();
         this.spawnPlatform(0, 400); 
@@ -104,6 +113,11 @@ class GameScene extends Phaser.Scene {
 
         this.score += (this.gameSpeed * delta) / 100000;
         this.scoreText.setText('Distance: ' + Math.floor(this.score) + 'm');
+
+        // Scroll Parallax Backgrounds
+        this.bgSky.tilePositionX += (this.gameSpeed * delta) / 1000 * 0.05;
+        
+        this.bgMountains.tilePositionX += (this.gameSpeed * delta) / 1000 * 0.20;
 
         let rightmostPlatformX = 0;
 
