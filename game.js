@@ -8,8 +8,8 @@ class GameScene extends Phaser.Scene {
     preload() {
 
         // Background layers
-        this.load.image('bg-mountains', 'assets/mountains.png');
-        this.load.image('bg-sky', 'assets/sky.png');
+        this.load.image('bg-mountains', 'Assets/mountains.png');
+        this.load.image('bg-sky', 'Assets/sky.png');
 
 
         // Temporary assets 
